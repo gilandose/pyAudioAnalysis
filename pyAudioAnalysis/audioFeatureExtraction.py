@@ -6,7 +6,6 @@ import numpy
 import math
 from scipy.fftpack import fft
 from scipy.fftpack.realtransforms import dct
-import matplotlib.pyplot as plt
 from pyAudioAnalysis import audioBasicIO
 from pyAudioAnalysis import utilities
 from scipy.signal import lfilter
@@ -281,17 +280,6 @@ def stChromaFeatures(X, fs, nChroma, nFreqsPerChroma):
     finalC = numpy.matrix(numpy.sum(C2, axis=0)).T
     finalC /= spec.sum()
 
-#    ax = plt.gca()
-#    plt.hold(False)
-#    plt.plot(finalC)
-#    ax.set_xticks(range(len(chromaNames)))
-#    ax.set_xticklabels(chromaNames)
-#    xaxis = numpy.arange(0, 0.02, 0.01);
-#    ax.set_yticks(range(len(xaxis)))
-#    ax.set_yticklabels(xaxis)
-#    plt.show(block=False)
-#    plt.draw()
-
     return chromaNames, finalC
 
 
@@ -338,29 +326,6 @@ def stChromagram(signal, fs, win, step, PLOT=False):
             chromaGram = numpy.vstack((chromaGram, C.T))
     FreqAxis = chromaNames
     TimeAxis = [(t * step) / fs for t in range(chromaGram.shape[0])]
-
-    if (PLOT):
-        fig, ax = plt.subplots()
-        chromaGramToPlot = chromaGram.transpose()[::-1, :]
-        Ratio = int(chromaGramToPlot.shape[1] / (3*chromaGramToPlot.shape[0]))
-        if Ratio < 1:
-            Ratio = 1
-        chromaGramToPlot = numpy.repeat(chromaGramToPlot, Ratio, axis=0)
-        imgplot = plt.imshow(chromaGramToPlot)
-        fstep = int(nfft / 5.0)
-#        FreqTicks = range(0, int(nfft) + fstep, fstep)
-#        FreqTicksLabels = [str(fs/2-int((f*fs) / (2*nfft))) for f in FreqTicks]
-        ax.set_yticks(range(int(Ratio / 2), len(FreqAxis) * Ratio, Ratio))
-        ax.set_yticklabels(FreqAxis[::-1])
-        TStep = int(count_fr / 3)
-        TimeTicks = range(0, count_fr, TStep)
-        TimeTicksLabels = ['%.2f' % (float(t * step) / fs) for t in TimeTicks]
-        ax.set_xticks(TimeTicks)
-        ax.set_xticklabels(TimeTicksLabels)
-        ax.set_xlabel('time (secs)')
-        imgplot.set_cmap('jet')
-        plt.colorbar()
-        plt.show()
 
     return (chromaGram, TimeAxis, FreqAxis)
 
@@ -417,18 +382,6 @@ def beatExtraction(st_features, win_len, PLOT=False):
         hist_centers = (HistEdges[0:-1] + HistEdges[1::]) / 2.0
         hist_times = hist_times.astype(float) / st_features.shape[1]
         hist_all += hist_times
-        if PLOT:
-            plt.subplot(9, 2, ii + 1)
-            plt.plot(st_features[i, :], 'k')
-            for k in pos1:
-                plt.plot(k, st_features[i, k], 'k*')
-            f1 = plt.gca()
-            f1.axes.get_xaxis().set_ticks([])
-            f1.axes.get_yaxis().set_ticks([])
-
-    if PLOT:
-        plt.show(block=False)
-        plt.figure()
 
     # Get beat as the argmax of the agregated histogram:
     I = numpy.argmax(hist_all)
@@ -437,15 +390,6 @@ def beatExtraction(st_features, win_len, PLOT=False):
     # ... and the beat ratio:
     Ratio = hist_all[I] / hist_all.sum()
 
-    if PLOT:
-        # filter out >500 beats from plotting:
-        hist_all = hist_all[bpms < 500]
-        bpms = bpms[bpms < 500]
-
-        plt.plot(bpms, hist_all, 'k')
-        plt.xlabel('Beats per minute')
-        plt.ylabel('Freq Count')
-        plt.show(block=True)
 
     return BPM, Ratio
 
@@ -492,25 +436,6 @@ def stSpectogram(signal, fs, win, step, PLOT=False):
 
     FreqAxis = [float((f + 1) * fs) / (2 * nfft) for f in range(specgram.shape[1])]
     TimeAxis = [float(t * step) / fs for t in range(specgram.shape[0])]
-
-    if (PLOT):
-        fig, ax = plt.subplots()
-        imgplot = plt.imshow(specgram.transpose()[::-1, :])
-        fstep = int(nfft / 5.0)
-        FreqTicks = range(0, int(nfft) + fstep, fstep)
-        FreqTicksLabels = [str(fs / 2 - int((f * fs) / (2 * nfft))) for f in FreqTicks]
-        ax.set_yticks(FreqTicks)
-        ax.set_yticklabels(FreqTicksLabels)
-        TStep = int(count_fr/3)
-        TimeTicks = range(0, count_fr, TStep)
-        TimeTicksLabels = ['%.2f' % (float(t * step) / fs) for t in TimeTicks]
-        ax.set_xticks(TimeTicks)
-        ax.set_xticklabels(TimeTicksLabels)
-        ax.set_xlabel('time (secs)')
-        ax.set_ylabel('freq (Hz)')
-        imgplot.set_cmap('jet')
-        plt.colorbar()
-        plt.show()
 
     return (specgram, TimeAxis, FreqAxis)
 
